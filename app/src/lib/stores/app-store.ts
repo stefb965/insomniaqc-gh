@@ -1023,14 +1023,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const performFailableOperation = createFailableOperationHandler(
-      repository,
-      this.emitError
-    )
-
-    const changedFiles = await performFailableOperation(() =>
+    const changedFiles = await this.withErrorHandling(repository, () =>
       getChangedFiles(repository, currentSHA)
     )
+
     if (!changedFiles) {
       return
     }
@@ -1940,12 +1936,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     const result = await this.isCommitting(repository, () => {
-      const performFailableOperation = createFailableOperationHandler(
-        repository,
-        this.emitError
-      )
-
-      return performFailableOperation(async () => {
+      return this.withErrorHandling(repository, async () => {
         const message = await formatCommitMessage(repository, context)
         return createCommit(repository, message, selectedFiles)
       })
